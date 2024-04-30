@@ -136,8 +136,8 @@ class ResidualStack(torch.nn.Module):
         self.stack_size = stack_size
         self.dilation_rate=dilation_rate
         self.kernel_size=kernel_size
-
-        self.res_blocks = self.stack_res_block(res_channels, skip_channels)
+        
+        self.res_blocks = torch.nn.ModuleList(self.stack_res_block(res_channels, skip_channels))
 
     @staticmethod
     def _residual_block(res_channels, skip_channels, dilation,kernel_size):
@@ -146,8 +146,8 @@ class ResidualStack(torch.nn.Module):
         #if torch.cuda.device_count() > 1:
         #    block = torch.nn.DataParallel(block)
 
-        if torch.cuda.is_available():
-            block.cuda()
+        #if torch.cuda.is_available():
+        #    block.cuda()
 
         return block
 

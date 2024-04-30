@@ -15,7 +15,18 @@ from mne import set_log_level
 from skorch.callbacks import LRScheduler,EarlyStopping,EpochScoring
 import os
 from WavenetLSTM import WavenetLSTM
+from sklearn.metrics import recall_score
+def sensitivity(net, ds, y=None):
+    # assume ds yields (X, y), e.g. torchvision.datasets.MNIST
+    y_true = [y for _, y in ds]
+    y_pred = net.predict(ds)
+    return recall_score(y_true, y_pred)
 
+def specificity(net, ds, y=None):
+    # assume ds yields (X, y), e.g. torchvision.datasets.MNIST
+    y_true = [y for _, y in ds]
+    y_pred = net.predict(ds)
+    return recall_score(y_true, y_pred,pos_label=0)
 class WindowDataset(torch.utils.data.Dataset):
     def __init__(self, excel_path):
         super().__init__()
@@ -47,7 +58,7 @@ if __name__=='__main__':
     model=WavenetLSTM()
 
     monitor = lambda net: any(net.history[-1, ('valid_accuracy_best','valid_f1_best','valid_loss_best')])
-    cp=Checkpoint(monitor='valid_f1_best',dirname='model',f_params=f'{model_name}best_param.pkl',
+    cp=Checkpoint(monitor='valid_acc_best',dirname='model',f_params=f'{model_name}best_param.pkl',
                f_optimizer=f'{model_name}best_opt.pkl', f_history=f'{model_name}best_history.json')
     scheduler=LRScheduler(policy=ReduceLROnPlateau,monitor='train_loss',factor=0.1,patience=2)
     
@@ -75,13 +86,18 @@ if __name__=='__main__':
                 name='train_acc',
                 lower_is_better=False,
             )),
-            ('valid_f1', EpochScoring(
-                'f1',
-                name='valid_f1',
+            ('valid_sensitivity', EpochScoring(
+                sensitivity,
+                name='valid_sensitivity',
+                lower_is_better=False,
+            )),
+            ('valid_specificity', EpochScoring(
+                specificity,
+                name='valid_specificity',
                 lower_is_better=False,
             )),
             cp,skorch.callbacks.ProgressBar(), scheduler
-            #, EarlyStopping(patience=10)
+            , EarlyStopping(patience=10),
             ],
             warm_start=True,
             )
