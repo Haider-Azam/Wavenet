@@ -162,3 +162,75 @@ class WavenetLSTM(torch.nn.Module):
 
         output = self.softmax(output)   
         return output
+    
+class WavePathModel(torch.nn.Module):
+    def __init__(self,input_time_length=15000,window_size=500,input_size=20):
+        """
+        Stack residual blocks by layer and stack size
+        :param layer_size: integer, 10 = layer[dilation=1, dilation=2, 4, 8, 16, 32, 64, 128, 256, 512]
+        :param stack_size: integer, 5 = stack[layer1, layer2, layer3, layer4, layer5]
+        :param in_channels: number of channels for input data. skip channel is same as input channel
+        :param res_channels: number of residual channel for input, output
+        :return:
+        """
+        super(WavePathModel, self).__init__()
+        self.input_time_length=input_time_length
+        self.window_size=window_size
+        self.input_size=input_size
+
+        self.wave_path=WavePath()
+
+        self.dense=Linear(in_features=64,out_features=2)
+
+        self.softmax=Softmax(dim=1)
+    def forward(self, x):
+        """
+        The size of timestep(3rd dimention) has to be bigger than receptive fields
+        :param x: Tensor[batch, channels, timestep]
+        :return: Tensor[batch, channels, timestep]
+        """
+        assert x.dim()==3
+
+        output = self.wave_path(x)
+
+        output = self.dense(output)
+
+        output = self.softmax(output)   
+        return output
+    
+class LSTMPathModel(torch.nn.Module):
+    def __init__(self,input_time_length=15000,window_size=500,input_size=20):
+        """
+        Stack residual blocks by layer and stack size
+        :param layer_size: integer, 10 = layer[dilation=1, dilation=2, 4, 8, 16, 32, 64, 128, 256, 512]
+        :param stack_size: integer, 5 = stack[layer1, layer2, layer3, layer4, layer5]
+        :param in_channels: number of channels for input data. skip channel is same as input channel
+        :param res_channels: number of residual channel for input, output
+        :return:
+        """
+        super(LSTMPathModel, self).__init__()
+        self.input_time_length=input_time_length
+        self.window_size=window_size
+        self.input_size=input_size
+
+        self.cain_channels=input_time_length//window_size
+
+        self.lstm_path=LSTMPath(window_size=window_size,input_size=input_size,in_channels=self.cain_channels)
+
+        self.dense=Linear(in_features=60,out_features=2)
+
+        self.softmax=Softmax(dim=1)
+    def forward(self, x):
+        """
+        The size of timestep(3rd dimention) has to be bigger than receptive fields
+        :param x: Tensor[batch, channels, timestep]
+        :return: Tensor[batch, channels, timestep]
+        """
+        assert x.dim()==3
+
+        output = self.lstm_path(x)
+
+        output = self.dense(output)
+
+        output = self.softmax(output)   
+        return output

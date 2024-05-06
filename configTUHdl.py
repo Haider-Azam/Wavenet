@@ -1,8 +1,8 @@
 # There should always be a 'train' and 'eval' folder directly
 # below these given folders
 # Folders should contain all normal and abnormal data files without duplications
-data_folders = ['D:/TUH EEG Corpus/edf']
-processed_folder='D:/TUH_processed'
+data_folders = ['E:/NMT_dataset/normal','E:/NMT_dataset/abnormal']
+processed_folder='D:/NMT_processed'
 n_recordings = None  # set to an integer, if you want to restrict the set size
 sensor_types = ["EEG"]
 n_chans = 21
