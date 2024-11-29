@@ -40,11 +40,6 @@ def get_info_with_mne(file_path):
             edf_file = mne.io.read_raw_edf(file_path, verbose='error')
     except ValueError:
         return None, None, None, None, None, None
-        # fix_header(file_path)
-        # try:
-        #     edf_file = mne.io.read_raw_edf(file_path, verbose='error')
-        # except ValueError:
-        #     return None, None, None, None, None, None
 
     # some recordings have a very weird sampling frequency. check twice before skipping the file
     sampling_frequency = int(edf_file.info['sfreq'])

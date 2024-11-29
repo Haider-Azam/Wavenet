@@ -1,7 +1,7 @@
 from wavenet import WaveNet as WaveNetModel
 from cain import CAIN
 import torch
-from torch.nn import AvgPool1d,LSTM,Dropout,Linear,Tanh,Flatten,Softmax
+from torch.nn import AvgPool1d,LSTM,Dropout,Linear,Tanh,Flatten
 
 class WavePath(torch.nn.Module):
     def __init__(self):
@@ -57,25 +57,17 @@ class WavePath(torch.nn.Module):
     
 class LSTMPath(torch.nn.Module):
     def __init__(self,window_size=500,input_size=20,in_channels=30):
-        """
-        Stack residual blocks by layer and stack size
-        :param layer_size: integer, 10 = layer[dilation=1, dilation=2, 4, 8, 16, 32, 64, 128, 256, 512]
-        :param stack_size: integer, 5 = stack[layer1, layer2, layer3, layer4, layer5]
-        :param in_channels: number of channels for input data. skip channel is same as input channel
-        :param res_channels: number of residual channel for input, output
-        :return:
-        """
         super(LSTMPath, self).__init__()
         self.window_size=window_size
         self.input_size=input_size
         self.in_channels=in_channels
         
-        self.lstm1=LSTM(input_size=input_size,hidden_size=input_size,num_layers = 3,batch_first=True)
+        self.lstm1=LSTM(input_size=input_size,hidden_size=64,num_layers = 20,batch_first=True)
 
-        self.lstm2=LSTM(input_size=input_size,hidden_size=input_size,num_layers = 3,batch_first=True)
+        self.lstm2=LSTM(input_size=input_size,hidden_size=64,num_layers = 20,batch_first=True)
 
         self.ch_attention=CAIN(depth=2,in_channels=in_channels)
-
+        
         self.dropout=Dropout(p=0.2)
 
         self.dense=Linear(in_features=20,out_features=2)
@@ -143,7 +135,6 @@ class WavenetLSTM(torch.nn.Module):
 
         self.dense=Linear(in_features=124,out_features=2)
 
-        self.softmax=Softmax(dim=1)
     def forward(self, x):
         """
         The size of timestep(3rd dimention) has to be bigger than receptive fields
@@ -160,7 +151,6 @@ class WavenetLSTM(torch.nn.Module):
 
         output = self.dense(output)
 
-        output = self.softmax(output)   
         return output
     
 class WavePathModel(torch.nn.Module):
@@ -182,7 +172,6 @@ class WavePathModel(torch.nn.Module):
 
         self.dense=Linear(in_features=64,out_features=2)
 
-        self.softmax=Softmax(dim=1)
     def forward(self, x):
         """
         The size of timestep(3rd dimention) has to be bigger than receptive fields
@@ -195,7 +184,6 @@ class WavePathModel(torch.nn.Module):
 
         output = self.dense(output)
 
-        output = self.softmax(output)   
         return output
     
 class LSTMPathModel(torch.nn.Module):
@@ -219,7 +207,6 @@ class LSTMPathModel(torch.nn.Module):
 
         self.dense=Linear(in_features=60,out_features=2)
 
-        self.softmax=Softmax(dim=1)
     def forward(self, x):
         """
         The size of timestep(3rd dimention) has to be bigger than receptive fields
@@ -231,6 +218,5 @@ class LSTMPathModel(torch.nn.Module):
         output = self.lstm_path(x)
 
         output = self.dense(output)
-
-        output = self.softmax(output)   
+   
         return output

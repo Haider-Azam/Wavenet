@@ -6,33 +6,20 @@
 #*    Availability: https://github.com/myungsub/CAIN
 #*
 #***************************************************************************************/
-import math
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 def sub_mean(x):
-    mean = x.mean(2, keepdim=True)#.mean(3, keepdim=True)
-    #x -= mean
+    mean = x.mean(2, keepdim=True)
     return x-mean, mean
 
 def InOutPaddings(x):
-    #w, h = x.size(3), x.size(2)
     length = x.size(2)
-    #padding_width, padding_height = 0, 0
     padding_length = 0
-    #if w != ((w >> 7) << 7):
-    #    padding_width = (((w >> 7) + 1) << 7) - w
-    #if h != ((h >> 7) << 7):
-    #    padding_height = (((h >> 7) + 1) << 7) - h
     if length != ((length >> 7) << 7):
         padding_length = (((length >> 7) + 1) << 7) - length
-    #paddingInput = nn.ReflectionPad1d(padding=[padding_width // 2, padding_width - padding_width // 2,
-    #                                           padding_height // 2, padding_height - padding_height // 2])
+
     paddingInput = nn.ReflectionPad1d(padding=[padding_length // 2, padding_length - padding_length // 2])
-    #paddingOutput = nn.ReflectionPad1d(padding=[0 - padding_width // 2, padding_width // 2 - padding_width,
-    #                                            0 - padding_height // 2, padding_height // 2 - padding_height])
     paddingOutput = nn.ReflectionPad1d(padding=[0 - padding_length // 2, padding_length // 2 - padding_length])
     return paddingInput, paddingOutput
 
